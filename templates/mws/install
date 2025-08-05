@@ -1,0 +1,10 @@
+mwsPortField=__VERSION1__,8585
+mwsDBURLField=__VERSION1__,jdbc%3Awm%3Apostgresql%3A%2F%2Fwmdb%3A5432%3BdatabaseName%3Dwm
+mwsDatabaseDriverCombo=__VERSION1__,6,0,1,2,3,4,5_,Oracle,SQL+Server,DB2+for+Linux%2C+UNIX%2C+Windows,MySQL+Community+Edition,MySQL+Enterprise+Edition,PostgreSQL                                                                                                                     
+mwsNameField=__VERSION1__,default
+mwsDBPwdField=__VERSION1__,wm
+mwsInstallServiceCheckbox=__VERSION1__,1,0,Register+Windows+service%2FUNIX+daemon+for+automatic+start+up
+mwsDBUserField=__VERSION1__,wm
+mwsCreateInstanceCheckbox=__VERSION1__,1,0_,Create+Server+Instance
+mwsNewInstallCheckbox=__VERSION1__,2,0_,1,New+installation,Side-by-side+installation+for+upgrade
+changeAdminPasswordAtFirstLogin=false

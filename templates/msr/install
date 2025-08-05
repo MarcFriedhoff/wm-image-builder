@@ -1,0 +1,8 @@
+IntegrationServerPort=__VERSION1__,5555
+IntegrationServersecurePort=__VERSION1__,5543
+IntegrationServerDBUser.Name=__VERSION1__,wm
+IntegrationServerdiagnosticPort=__VERSION1__,9999
+IntegrationServer.RDBMS.Type=__VERSION1__,6,0,1,2,3,4,5_,Oracle,SQL+Server,DB2+for+Linux%2C+UNIX%2C+Windows,MySQL+Community+Edition,MySQL+Enterprise+Edition,PostgreSQL
+ISExtOrInt=__VERSION1__,2,0_,1,External+RDBMS,Embedded+database
+IntegrationServerDBURL.Name=__VERSION1__,jdbc%3Awm%3Apostgresql%3A%2F%2Fwmdb%3A5432%3BdatabaseName%3Dwm
+IntegrationServerPool.Name=__VERSION1__,wm
