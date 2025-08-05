@@ -87,7 +87,7 @@ rm -f Dockerfile.tmp installer.script.tmp
 ## 🔍 Example Command
 
 ```bash
-ENTITLEMENT_USER=myuser ENTITLEMENT_KEY=mykey ./build.sh -t mws -i mws-custom:10.15
+ENTITLEMENT_USER=myuser ENTITLEMENT_KEY=mykey RELEASE=1015 BASE_IMAGE=docker.io/redhat/ubi8:latest ADMIN_PASSWORD=manage ./build.sh -t mws -i mws-custom:10.15
 ```
 
 ---
