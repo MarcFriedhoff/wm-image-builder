@@ -11,8 +11,6 @@ RUN dnf install -y shadow-utils procps-ng tar \
  && dnf clean all \
  && rm -rf /var/cache/*
 
-USER 1724
-
 ARG INSTANCE_NAME=default
 ARG VOLUMES_DIR=$SAG_HOME/MWS/volumes
 
@@ -30,11 +28,12 @@ ENV DB_TYPE= \
     MWS_WORKDIR=$SAG_HOME/MWS/server/$INSTANCE_NAME/bin 
 
 RUN mkdir -p $APPS_DIR $CONFIGS_DIR $DATA_DIR $LIBS_DIR $LOGS_DIR $PATCHES_DIR && chown 1724:1724 $APPS_DIR && chown 1724:1724 $CONFIGS_DIR && chown 1724:1724 $DATA_DIR && chown 1724:1724 $LIBS_DIR && chown 1724:1724 $LOGS_DIR && chown 1724:1724 $PATCHES_DIR
- && mkdir /tmp && chown 1724:1724 /tmp
 
 COPY --chown=1724:1724 --from=INSTALL $SAG_HOME/ $SAG_HOME/
 
 RUN chmod u+x $SAG_HOME/MWS/bin/mws.sh && chmod u+x $MWS_WORKDIR/container.sh
+
+USER 1724
 
 WORKDIR $MWS_WORKDIR
 

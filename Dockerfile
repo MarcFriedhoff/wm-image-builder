@@ -62,10 +62,7 @@ RUN echo 'Debug Installer script: ' && echo && cat installer.script
 
 # Install software ...
 #   and Change user context to ...
-USER sagadmin
-
-ENV HOME=/opt/softwareag
-ENV USER=sagadmin
+USER root
 
 WORKDIR /opt/softwareag
 
