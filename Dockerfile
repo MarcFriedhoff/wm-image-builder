@@ -1,16 +1,19 @@
 # Use base image ...
 ARG BASE_IMAGE
-FROM ${BASE_IMAGE} as INSTALL
+ARG INSTALL_BASE_IMAGE
 
-# Following parameters are needed ...
-#   Empower credentials ...
+FROM ${INSTALL_BASE_IMAGE:-${BASE_IMAGE}} as INSTALL
 ARG ENTITLEMENT_USER
 ARG ENTITLEMENT_KEY
+ARG INSTALLER=installer.bin
 ARG INSTALLER_VERSION
 ARG RELEASE
 ARG ADMIN_PASSWORD
 ARG PRODUCTS
 ARG DEBUG=false
+
+# Following parameters are needed ...
+#   Empower credentials ...
 
 ENV DEBUG=${DEBUG}
 
@@ -21,31 +24,64 @@ ENV DEBUG=${DEBUG}
 #   apt-get upgrade                            -y && \
 #   apt-get install curl                       -y
 
-COPY installer.bin /installer.bin
+COPY ${INSTALLER} /installer.bin
 
 COPY installer.script.tmp /installer.script.tmp
-
 
 # Create user ...
 RUN useradd -ms /bin/bash sagadmin
 
 # Create installation directory ...
-RUN mkdir          /opt/softwareag
+RUN mkdir -p  /opt/softwareag/
+RUN mkdir -p /installer/templates/
 RUN chown sagadmin /opt/softwareag
 RUN chmod +x /installer.bin
 
 # set user home directory
 ENV SAG_HOME=/opt/softwareag
 
-# install procps-ng on redhat/ubi8
-RUN dnf install -y shadow-utils procps-ng tar \
- && dnf clean all \
- && rm -rf /var/cache/*
+# Install tools depending on the base image
+RUN . /etc/os-release; \
+    echo "Base: $ID $VERSION_ID"; \
+    if echo "$ID $ID_LIKE" | grep -qi 'rhel\|ubi\|centos\|fedora'; then \
+        case "$VERSION_ID" in \
+          8*) dnf install -y shadow-utils procps-ng tar ;; \
+          9*) if command -v microdnf >/dev/null 2>&1; then \
+                  microdnf install -y shadow-utils coreutils-single procps tar gzip; \
+               else \
+                  dnf install -y shadow-utils procps-ng tar; \
+               fi ;; \
+          *) echo "Unsupported RHEL/UBI version: $VERSION_ID" >&2; exit 1 ;; \
+        esac; \
+        (dnf clean all || microdnf clean all || true); \
+        rm -rf /var/cache/*; \
+    elif echo "$ID $ID_LIKE" | grep -qi 'debian\|ubuntu'; then \
+        apt-get update && apt-get install -y procps tar && \
+        rm -rf /var/lib/apt/lists/*; \
+    elif [ "$ID" = "alpine" ]; then \
+        apk add --no-cache procps tar; \
+    else \
+        echo "Unknown base image: $ID (like: $ID_LIKE) $VERSION_ID" >&2; exit 1; \
+    fi
 
 # install process tools on redhat/ubi9-minimal
 #RUN microdnf install -y shadow-utils coreutils-single procps tar gzip \
 # && microdnf clean all \
 # && rm -rf /var/cache/*
+
+ENV PRODUCTS=${PRODUCTS}
+
+RUN echo "PRODUCTS: ${PRODUCTS}"
+
+FROM INSTALL as INSTALLER
+
+ARG ENTITLEMENT_USER
+ARG ENTITLEMENT_KEY
+ARG INSTALLER_VERSION
+ARG RELEASE
+ARG ADMIN_PASSWORD
+ARG PRODUCTS
+ARG DEBUG=false
 
 # Create script for Software AG Installer ...
 RUN \

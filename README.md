@@ -1,6 +1,6 @@
 # 🛠 IBM webMethods container Image Builder
 
-This repository includes a `build.sh` script for building custom Docker images using predefined templates. The script supports dynamic template selection, image naming, and a debug mode.
+This repository includes a `record.sh` script for recording image builds and a `build.sh` script for building custom Docker images using predefined templates. The script supports dynamic template selection, image naming, and a debug mode.
 
 ---
 
@@ -10,7 +10,7 @@ This repository includes a `build.sh` script for building custom Docker images u
 - get an entitlement key and user from IBM
 - Set the environments variables (see [Environment Variables](#Environment-Variables))
 
-## 🚀 Usage
+## 🚀 Usage build.sh
 
 ```bash
 ./build.sh [-t template] [-i image] [-d]
