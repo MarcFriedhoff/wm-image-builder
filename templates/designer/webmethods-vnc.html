@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>webMethods Designer Desktop</title>
+    
+    <!-- Carbon Design System Theme -->
+    <meta name="theme-color" content="#161616">
+    
+    <!-- Apple iOS Safari settings -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- IBM Plex Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono&display=swap">
+    
+    <!-- Carbon Design System - Official Stylesheets -->
+    <link rel="stylesheet" href="https://unpkg.com/carbon-components@10.58.12/css/carbon-components.min.css">
+    
+    <!-- Carbon Icons -->
+    <link rel="stylesheet" href="https://unpkg.com/@carbon/icons@11.0.0/css/icons.min.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: #161616;
+            color: #f4f4f4;
+            overflow: hidden;
+        }
+        
+        /* VNC Canvas Container */
+        #vnc-canvas-container {
+            position: fixed;
+            top: 48px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #vnc-canvas-container canvas {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        /* Connection Overlay */
+        .connection-overlay {
+            position: fixed;
+            top: 48px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(22, 22, 22, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9000;
+        }
+        
+        .connection-overlay.hidden {
+            display: none;
+        }
+        
+        .connection-dialog {
+            background: #262626;
+            border: 1px solid #393939;
+            padding: 3rem;
+            max-width: 480px;
+            width: 90%;
+        }
+        
+        .connection-dialog h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0 0 1rem 0;
+            color: #f4f4f4;
+        }
+        
+        .connection-dialog p {
+            font-size: 14px;
+            color: #c6c6c6;
+            margin: 0 0 2rem 0;
+            line-height: 1.5;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: #c6c6c6;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.32px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            background: #393939;
+            color: #f4f4f4;
+            border: none;
+            border-bottom: 1px solid #8d8d8d;
+            padding: 11px 16px;
+            font-size: 14px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            box-sizing: border-box;
+        }
+        
+        .form-group input:focus {
+            outline: 2px solid #0f62fe;
+            outline-offset: -2px;
+            border-bottom-color: #0f62fe;
+        }
+        
+        .form-group small {
+            display: block;
+            font-size: 12px;
+            color: #8d8d8d;
+            margin-top: 0.5rem;
+        }
+        
+        .form-group small code {
+            background: #393939;
+            padding: 2px 6px;
+            font-family: 'IBM Plex Mono', monospace;
+            color: #78a9ff;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        /* Loading Spinner */
+        .loading-spinner {
+            display: none;
+            margin: 2rem auto;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #393939;
+            border-top-color: #0f62fe;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        .loading-spinner.active {
+            display: block;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Status Badge in Header */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 1rem;
+        }
+        
+        .status-badge.disconnected {
+            background: #525252;
+            color: #f4f4f4;
+        }
+        
+        .status-badge.connecting {
+            background: #f1c21b;
+            color: #161616;
+        }
+        
+        .status-badge.connected {
+            background: #24a148;
+            color: #161616;
+        }
+        
+        .status-badge.error {
+            background: #da1e28;
+            color: #f4f4f4;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #262626;
+            border-left: 4px solid #0f62fe;
+            padding: 1rem 1.5rem;
+            max-width: 400px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+            font-size: 14px;
+            color: #f4f4f4;
+        }
+        
+        .toast-notification.success {
+            border-left-color: #24a148;
+        }
+        
+        .toast-notification.error {
+            border-left-color: #da1e28;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Fullscreen mode adjustments */
+        .fullscreen #vnc-canvas-container {
+            top: 0;
+        }
+        
+        .fullscreen .bx--header {
+            display: none;
+        
+        .fullscreen .side-panel {
+            display: none;
+        }
+        
+        /* Side Panel */
+        .side-panel {
+            position: fixed !important;
+            top: 48px !important;
+            left: -320px !important;
+            width: 320px !important;
+            height: calc(100vh - 48px) !important;
+            background: #262626 !important;
+            border-right: 1px solid #393939 !important;
+            z-index: 8000 !important;
+            transition: left 0.3s cubic-bezier(0.2, 0, 0.38, 0.9) !important;
+            overflow-y: auto !important;
+            display: block !important;
+        }
+        
+        .side-panel.open {
+            left: 0 !important;
+        }
+        
+        .side-panel-header {
+            padding: 1rem;
+            border-bottom: 1px solid #393939;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .side-panel-header h3 {
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            margin: 0 !important;
+            color: #f4f4f4 !important;
+        }
+        
+        .side-panel-close {
+            background: transparent;
+            border: none;
+            color: #f4f4f4;
+            cursor: pointer;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .side-panel-close:hover {
+            background: #393939;
+        }
+        
+        .side-panel-content {
+            padding: 0 !important;
+        }
+        
+        .side-panel-section {
+            margin-bottom: 1.5rem !important;
+            padding: 0 16px !important;
+        }
+        
+        .side-panel-section:first-child {
+            padding-top: 16px !important;
+        }
+        
+        .side-panel-section h4 {
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            color: #8d8d8d !important;
+            margin: 0 0 0.5rem 0 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.32px !important;
+        }
+        
+        .side-panel-item {
+            padding: 8px 12px !important;
+            background: transparent !important;
+            border: none !important;
+            border-bottom: 1px solid #393939 !important;
+            margin-bottom: 0 !important;
+            cursor: pointer !important;
+            transition: all 0.11s cubic-bezier(0.2, 0, 0.38, 0.9) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+        }
+        
+        .side-panel-item:hover {
+            background: #393939 !important;
+        }
+        
+        .side-panel-item svg {
+            width: 16px !important;
+            height: 16px !important;
+            flex-shrink: 0 !important;
+        }
+        
+        .side-panel-item-content {
+            flex: 1 !important;
+        }
+        
+        .side-panel-item-title {
+            font-size: 14px !important;
+            font-weight: 400 !important;
+            color: #f4f4f4 !important;
+            margin-bottom: 0 !important;
+            line-height: 1.4 !important;
+        }
+        
+        .side-panel-item-desc {
+            font-size: 12px !important;
+            color: #8d8d8d !important;
+            margin-top: 2px !important;
+            line-height: 1.3 !important;
+        }
+        
+        .side-panel-divider {
+            height: 1px !important;
+            background: #393939 !important;
+            margin: 0 !important;
+        }
+        
+        /* Overlay for side panel */
+        .side-panel-overlay {
+            position: fixed !important;
+            top: 48px !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            z-index: 7000 !important;
+            display: none !important;
+        }
+        
+        .side-panel-overlay.active {
+            display: block !important;
+        }
+        }
+    </style>
+    
+    <script type="module" crossorigin="anonymous" src="app/error-handler.js"></script>
+</head>
+<body>
+    <!-- Carbon UI Shell Header -->
+    <header class="bx--header" role="banner" aria-label="webMethods Designer Desktop">
+        <!-- Hamburger Menu Button (Left Side) -->
+        <button id="menu-btn" class="bx--header__action" type="button" aria-label="Menu" title="Menu" style="margin-right: auto;">
+            <svg class="bx--header__action-icon" width="20" height="20" viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                <path d="M4 6h24v2H4zm0 8h24v2H4zm0 8h24v2H4z"/>
+            </svg>
+        </button>
+        
+        <a class="bx--header__name" href="#" title="webMethods Designer Desktop">
+            <span class="bx--header__name--prefix">webMethods&nbsp;</span>
+            Designer Desktop
+        </a>
+        
+        <div class="bx--header__global">
+            <!-- Connection Status Badge -->
+            <div id="status-badge" class="status-badge disconnected">
+                <span class="status-dot"></span>
+                <span id="status-text">Disconnected</span>
+            </div>
+            
+            <!-- Fullscreen Button -->
+            <button id="fullscreen-btn" class="bx--header__action" type="button" aria-label="Toggle Fullscreen" title="Toggle Fullscreen">
+                <svg class="bx--header__action-icon" width="20" height="20" viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                    <path d="M4 4v8h2V6.4l5.3 5.3 1.4-1.4L7.6 5H12V4H4zM20 4v2h4.6l-5.3 5.3 1.4 1.4L26 7.6V12h2V4h-8zM11.7 20.3L6.4 26H12v2H4v-8h2v4.6l5.3-5.3 1.4 1.4zM20.3 20.3l1.4-1.4 5.3 5.3V20h2v8h-8v-2h4.6l-5.3-5.3z"/>
+                </svg>
+            </button>
+            
+            <!-- Disconnect Button (hidden initially) -->
+            <button id="disconnect-btn" class="bx--header__action hidden" type="button" aria-label="Disconnect" title="Disconnect">
+                <svg class="bx--header__action-icon" width="20" height="20" viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                    <path d="M6 6l1.4 1.4L11 11v5h2v-5l3.6-3.6L18 6l-6 6-6-6zm20 20l-1.4-1.4L21 21v-5h-2v5l-3.6 3.6L14 26l6-6 6 6z"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+    
+        <!-- Side Panel Overlay -->
+    <div id="side-panel-overlay" class="side-panel-overlay" style="position: fixed; top: 48px; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 7000; display: none;"></div>
+    
+    <!-- Side Panel -->
+    <aside id="side-panel" class="side-panel" style="position: fixed; top: 48px; left: -320px; width: 320px; height: calc(100vh - 48px); background: #262626; border-right: 1px solid #393939; z-index: 8000; transition: left 0.3s cubic-bezier(0.2, 0, 0.38, 0.9); overflow-y: auto; display: block;"></search>
+
+        <div class="side-panel-header">
+            <h3>Menu</h3>
+            <button id="side-panel-close" class="side-panel-close" aria-label="Close menu">
+                <svg width="20" height="20" viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                    <path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/>
+                </svg>
+            </button>
+        </div>
+        <div class="side-panel-content">
+            <div class="side-panel-section">
+                <h4>Workspace</h4>
+                <div class="side-panel-item" id="menu-dashboard">
+                    <svg viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                        <path d="M4 2H2v26a2 2 0 002 2h26v-2H4z"/>
+                        <path d="M30 9h-7v2h3.59L19 18.59l-4.29-4.3a1 1 0 00-1.42 0L6 21.59 7.41 23 14 16.41l4.29 4.3a1 1 0 001.42 0L28 12.41V16h2V9z"/>
+                    </svg>
+                    <div class="side-panel-item-content">
+                        <div class="side-panel-item-title">Dashboard</div>
+                        <div class="side-panel-item-desc">View workspace overview</div>
+                    </div>
+                </div>
+                <div class="side-panel-item" id="menu-projects">
+                    <svg viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                        <path d="M28 4H16l-2.4-2.4A2 2 0 0012.2 1H4a2 2 0 00-2 2v22a2 2 0 002 2h24a2 2 0 002-2V6a2 2 0 00-2-2zM4 3h8.2l2.4 2.4a2 2 0 001.4.6h12v2H4zm0 22V9h24v16z"/>
+                    </svg>
+                    <div class="side-panel-item-content">
+                        <div class="side-panel-item-title">Projects</div>
+                        <div class="side-panel-item-desc">Manage integration projects</div>
+                    </div>
+                </div>
+                <div class="side-panel-item" id="menu-packages">
+                    <svg viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                        <path d="M28 10h-6V4a2 2 0 00-2-2H4a2 2 0 00-2 2v16a2 2 0 002 2h6v6a2 2 0 002 2h16a2 2 0 002-2V12a2 2 0 00-2-2zM4 20V4h16v6h-8a2 2 0 00-2 2v8zm24 8H12v-16h16z"/>
+                    </svg>
+                    <div class="side-panel-item-content">
+                        <div class="side-panel-item-title">Packages</div>
+                        <div class="side-panel-item-desc">Browse and deploy packages</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="side-panel-divider"></div>
+            
+            <div class="side-panel-section">
+                <h4>Development</h4>
+                <div class="side-panel-item" id="menu-services">
+                    <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                        <path d="M27 22.141V18a2 2 0 00-2-2h-8v-4h2a2.002 2.002 0 002-2V4a2.002 2.002 0 00-2-2h-6a2.002 2.002 0 00-2 2v6a2.002 2.002 0 002 2h2v4H7a2 2 0 00-2 2v4.142a4 4 0 102 0V18h8v4.142a4 4 0 102 0V18h8v4.141a4 4 0 102 0zM13 4h6l.001 6H13zM8 26a2 2 0 11-2-2 2.002 2.002 0 012 2zm10 0a2 2 0 11-2-2 2.003 2.003 0 012 2zm8 2a2 2 0 112-2 2.002 2.002 0 01-2 2z"/>
+                    </svg>
+                    <div class="side-panel-item-content">
+                        <div class="side-panel-item-title">Services</div>
+                        <div class="side-panel-item-desc">Create and edit flow services</div>
+                    </div>
+                </div>
+                <div class="side-panel-item" id="menu-adapters">
+                    <svg viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                        <path d="M28 10h-6v2h6v6h-6v2h6v6h-6v2h6a2 2 0 002-2V12a2 2 0 00-2-2zM18 10h-6v2h6v6h-6v2h6v6h-6v2h6a2 2 0 002-2V12a2 2 0 00-2-2zM8 10H4a2 2 0 00-2 2v14a2 2 0 002 2h4a2 2 0 002-2V12a2 2 0 00-2-2zm0 16H4V12h4z"/>
+                    </svg>
+                    <div class="side-panel-item-content">
+                        <div class="side-panel-item-title">Adapters</div>
+                        <div class="side-panel-item-desc">Configure adapter connections</div>
+                    </div>
+                </div>
+                <div class="side-panel-item" id="menu-documents">
+                    <svg viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                        <path d="M25.7 9.3l-7-7A.9.9 0 0018 2H8a2 2 0 00-2 2v24a2 2 0 002 2h16a2 2 0 002-2V10a.9.9 0 00-.3-.7zM18 4.4l5.6 5.6H18zM24 28H8V4h8v6a2 2 0 002 2h6z"/>
+                        <path d="M10 22h12v2H10zm0-6h12v2H10z"/>
+                    </svg>
+                    <div class="side-panel-item-content">
+                        <div class="side-panel-item-title">Documents</div>
+                        <div class="side-panel-item-desc">Manage document types</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="side-panel-divider"></div>
+            
+            <div class="side-panel-section">
+                <h4>Tools</h4>
+                <div class="side-panel-item" id="menu-testing">
+                    <svg viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                        <path d="M28 2H4a2 2 0 00-2 2v24a2 2 0 002 2h24a2 2 0 002-2V4a2 2 0 00-2-2zm0 2v4H4V4zM4 28V10h24v18z"/>
+                        <path d="M10 16h6v2h-6zm0 4h10v2H10z"/>
+                    </svg>
+                    <div class="side-panel-item-content">
+                        <div class="side-panel-item-title">Testing</div>
+                        <div class="side-panel-item-desc">Test services and flows</div>
+                    </div>
+                </div>
+                <div class="side-panel-item" id="menu-logs">
+                    <svg viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                        <path d="M28 4H10a2 2 0 00-2 2v6H4a2 2 0 00-2 2v14a2 2 0 002 2h18a2 2 0 002-2v-6h4a2 2 0 002-2V6a2 2 0 00-2-2zM22 28H4V14h18zm6-8h-4V14a2 2 0 00-2-2h-6V6h12z"/>
+                    </svg>
+                    <div class="side-panel-item-content">
+                        <div class="side-panel-item-title">Server Logs</div>
+                        <div class="side-panel-item-desc">View server and error logs</div>
+                    </div>
+                </div>
+                <div class="side-panel-item" id="menu-monitoring">
+                    <svg viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                        <path d="M24 21v-6.59l-4.29 4.3-4-4-8.3 8.29 1.42 1.41L15 18.24l4 4 5.71-5.7V21h2z"/>
+                        <path d="M28 2H4a2 2 0 00-2 2v24a2 2 0 002 2h24a2 2 0 002-2V4a2 2 0 00-2-2zm0 26H4V4h24z"/>
+                    </svg>
+                    <div class="side-panel-item-content">
+                        <div class="side-panel-item-title">Monitoring</div>
+                        <div class="side-panel-item-desc">Monitor service performance</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="side-panel-divider"></div>
+            
+            <div class="side-panel-section">
+                <h4>Display</h4>
+                <div class="side-panel-item" id="menu-fullscreen">
+                    <svg viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                        <path d="M4 4v8h2V6.4l5.3 5.3 1.4-1.4L7.6 5H12V4H4zM20 4v2h4.6l-5.3 5.3 1.4 1.4L26 7.6V12h2V4h-8zM11.7 20.3L6.4 26H12v2H4v-8h2v4.6l5.3-5.3 1.4 1.4zM20.3 20.3l1.4-1.4 5.3 5.3V20h2v8h-8v-2h4.6l-5.3-5.3z"/>
+                    </svg>
+                    <div class="side-panel-item-content">
+                        <div class="side-panel-item-title">Toggle Fullscreen</div>
+                        <div class="side-panel-item-desc">Enter or exit fullscreen mode</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="side-panel-divider"></div>
+            
+            <div class="side-panel-section">
+                <h4>Connection</h4>
+                <div class="side-panel-item" id="menu-reconnect">
+                    <svg viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                        <path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10z"/>
+                    </svg>
+                    <div class="side-panel-item-content">
+                        <div class="side-panel-item-title">Reconnect</div>
+                        <div class="side-panel-item-desc">Reconnect to desktop session</div>
+                    </div>
+                </div>
+                <div class="side-panel-item" id="menu-disconnect">
+                    <svg viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                        <path d="M6 6l1.4 1.4L11 11v5h2v-5l3.6-3.6L18 6l-6 6-6-6zm20 20l-1.4-1.4L21 21v-5h-2v5l-3.6 3.6L14 26l6-6 6 6z"/>
+                    </svg>
+                    <div class="side-panel-item-content">
+                        <div class="side-panel-item-title">Disconnect</div>
+                        <div class="side-panel-item-desc">Close desktop connection</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="side-panel-divider"></div>
+            
+            <div class="side-panel-section">
+                <h4>About</h4>
+                <div class="side-panel-item" style="cursor: default; background: #262626;">
+                    <svg viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                        <path d="M16 2C8.3 2 2 8.3 2 16s6.3 14 14 14 14-6.3 14-14S23.7 2 16 2zm0 26C9.4 28 4 22.6 4 16S9.4 4 16 4s12 5.4 12 12-5.4 12-12 12z"/>
+                        <path d="M15 10h2v2h-2zm0 4h2v8h-2z"/>
+                    </svg>
+                    <div class="side-panel-item-content">
+                        <div class="side-panel-item-title">Version</div>
+                        <div class="side-panel-item-desc">webMethods Designer Desktop v1.0</div>
+                    </div>
+                </div>
+                <div class="side-panel-item" style="cursor: default; background: #262626;">
+                    <svg viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+                        <path d="M16 8a5 5 0 11-5 5 5 5 0 015-5m0-2a7 7 0 107 7 7 7 0 00-7-7z"/>
+                        <path d="M26 30h-2v-5a5 5 0 00-5-5h-6a5 5 0 00-5 5v5H6v-5a7 7 0 017-7h6a7 7 0 017 7z"/>
+                    </svg>
+                    <div class="side-panel-item-content">
+                        <div class="side-panel-item-title">User</div>
+                        <div class="side-panel-item-desc">sagadmin (UID: 1724)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- VNC Canvas Container -->
+    <div id="vnc-canvas-container"></div>
+    
+    <!-- Connection Overlay -->
+    <div id="connection-overlay" class="connection-overlay">
+        <div class="connection-dialog">
+            <h2>Connect to webMethods Designer Desktop</h2>
+            <p id="connection-message">
+                Enter your VNC password to connect to the remote desktop session.
+            </p>
+            
+            <div id="loading-spinner" class="loading-spinner"></div>
+            
+            <form id="connection-form">
+                <div class="form-group">
+                    <label for="vnc-password">Password</label>
+                    <input type="password" id="vnc-password" placeholder="Enter VNC password" autocomplete="off">
+                    <small>
+                        Default password: <code>1234</code><br>
+                        Change via <code>VNC_PASSWORD</code> environment variable
+                    </small>
+                </div>
+                
+                <div class="button-group">
+                    <button type="submit" class="bx--btn bx--btn--primary">
+                        Connect
+                    </button>
+                    <button type="button" id="cancel-btn" class="bx--btn bx--btn--secondary hidden">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- noVNC Integration Script -->
+    <script type="module">
+        import RFB from './core/rfb.js';
+        import * as Log from './core/util/logging.js';
+        
+        let rfb;
+        let desktopName;
+        
+        // UI Elements
+        const connectionOverlay = document.getElementById('connection-overlay');
+        const connectionForm = document.getElementById('connection-form');
+        const connectionMessage = document.getElementById('connection-message');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const passwordInput = document.getElementById('vnc-password');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const statusBadge = document.getElementById('status-badge');
+        const statusText = document.getElementById('status-text');
+        const canvasContainer = document.getElementById('vnc-canvas-container');
+        const menuBtn = document.getElementById('menu-btn');
+        const sidePanel = document.getElementById('side-panel');
+        const sidePanelOverlay = document.getElementById('side-panel-overlay');
+        const sidePanelClose = document.getElementById('side-panel-close');
+        
+        // Update connection status
+        function updateStatus(status, message) {
+            statusBadge.className = `status-badge ${status}`;
+            statusText.textContent = message;
+        }
+        
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+        
+        // Connect to VNC
+        function connect(password) {
+            const host = window.location.hostname;
+            const port = window.location.port || (window.location.protocol === 'https:' ? 443 : 80);
+            
+            // Show loading state
+            loadingSpinner.classList.add('active');
+            connectionMessage.textContent = 'Connecting to desktop...';
+            connectionForm.querySelector('button[type="submit"]').disabled = true;
+            cancelBtn.classList.remove('hidden');
+            updateStatus('connecting', 'Connecting');
+            
+            try {
+                const url = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${host}:${port}/websockify`;
+                
+                rfb = new RFB(canvasContainer, url, {
+                    credentials: { password: password }
+                });
+                
+                rfb.addEventListener("connect", connectedToServer);
+                rfb.addEventListener("disconnect", disconnectedFromServer);
+                rfb.addEventListener("credentialsrequired", credentialsRequired);
+                rfb.addEventListener("desktopname", updateDesktopName);
+                
+                rfb.scaleViewport = true;
+                rfb.resizeSession = true;
+                
+                Log.Info('Connecting to VNC server...');
+                
+            } catch (err) {
+                Log.Error('Connection error: ' + err);
+                updateStatus('error', 'Connection failed');
+                showToast('Failed to connect: ' + err, 'error');
+                resetConnectionForm();
+            }
+        }
+        
+        // Disconnect from VNC
+        function disconnect() {
+            if (rfb) {
+                rfb.disconnect();
+                rfb = null;
+            }
+        }
+        
+        // Reset connection form
+        function resetConnectionForm() {
+            loadingSpinner.classList.remove('active');
+            connectionForm.querySelector('button[type="submit"]').disabled = false;
+            cancelBtn.classList.add('hidden');
+            connectionMessage.textContent = 'Enter your VNC password to connect to the remote desktop session.';
+        }
+        
+        // Event: Connected to server
+        function connectedToServer() {
+            Log.Info('Connected to VNC server');
+            updateStatus('connected', 'Connected');
+            connectionOverlay.classList.add('hidden');
+            disconnectBtn.classList.remove('hidden');
+            showToast('Successfully connected to desktop', 'success');
+            resetConnectionForm();
+        }
+        
+        // Event: Disconnected from server
+        function disconnectedFromServer(e) {
+            Log.Info('Disconnected from VNC server');
+            
+            if (e.detail.clean) {
+                updateStatus('disconnected', 'Disconnected');
+                showToast('Disconnected from desktop', 'info');
+            } else {
+                updateStatus('error', 'Connection lost');
+                showToast('Connection lost: ' + e.detail.reason, 'error');
+            }
+            
+            connectionOverlay.classList.remove('hidden');
+            disconnectBtn.classList.add('hidden');
+            resetConnectionForm();
+            passwordInput.value = '';
+        }
+        
+        // Event: Credentials required
+        function credentialsRequired() {
+            Log.Info('Credentials required');
+            resetConnectionForm();
+            connectionMessage.textContent = 'Authentication required. Please enter your password.';
+            passwordInput.focus();
+        }
+        
+        // Event: Desktop name received
+        function updateDesktopName(e) {
+            desktopName = e.detail.name;
+            Log.Info('Desktop name: ' + desktopName);
+        }
+        
+        // Toggle fullscreen
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                document.body.classList.add('fullscreen');
+            } else {
+                document.exitFullscreen();
+                document.body.classList.remove('fullscreen');
+            }
+        }
+        
+        // Toggle side panel
+        function toggleSidePanel() {
+            console.log('toggleSidePanel called');
+            if (sidePanel && sidePanelOverlay) {
+                const isOpen = sidePanel.style.left === '0px';
+                if (isOpen) {
+                    sidePanel.style.left = '-320px';
+                    sidePanelOverlay.style.display = 'none';
+                } else {
+                    sidePanel.style.left = '0px';
+                    sidePanelOverlay.style.display = 'block';
+                }
+                console.log('Panel left:', sidePanel.style.left);
+                console.log('Overlay display:', sidePanelOverlay.style.display);
+            } else {
+                console.error('Side panel or overlay not found');
+            }
+        }
+        
+        // Close side panel
+        function closeSidePanel() {
+            if (sidePanel && sidePanelOverlay) {
+                sidePanel.style.left = '-320px';
+                sidePanelOverlay.style.display = 'none';
+            }
+        }
+        
+        // Event Listeners
+        connectionForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const password = passwordInput.value;
+            if (password) {
+                connect(password);
+            } else {
+                showToast('Please enter a password', 'error');
+            }
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+            disconnect();
+            resetConnectionForm();
+        });
+        
+        disconnectBtn.addEventListener('click', () => {
+            disconnect();
+        });
+        
+        fullscreenBtn.addEventListener('click', () => {
+            toggleFullscreen();
+        });
+        
+        // Menu button event listener
+        if (menuBtn) {
+            menuBtn.addEventListener('click', () => {
+                console.log('Menu button clicked');
+                toggleSidePanel();
+            });
+        } else {
+            console.error('Menu button not found');
+        }
+        
+        // Handle fullscreen change
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                document.body.classList.remove('fullscreen');
+            }
+        });
+        
+        // Side panel close button
+        sidePanelClose.addEventListener('click', () => {
+            closeSidePanel();
+        });
+        
+        // Side panel overlay click
+        sidePanelOverlay.addEventListener('click', () => {
+            closeSidePanel();
+        });
+        
+        // Side panel menu items - Workspace
+        document.getElementById('menu-dashboard').addEventListener('click', () => {
+            showToast('Dashboard feature coming soon', 'info');
+            closeSidePanel();
+        });
+        
+        document.getElementById('menu-projects').addEventListener('click', () => {
+            showToast('Projects feature coming soon', 'info');
+            closeSidePanel();
+        });
+        
+        document.getElementById('menu-packages').addEventListener('click', () => {
+            showToast('Packages feature coming soon', 'info');
+            closeSidePanel();
+        });
+        
+        // Side panel menu items - Development
+        document.getElementById('menu-services').addEventListener('click', () => {
+            showToast('Services feature coming soon', 'info');
+            closeSidePanel();
+        });
+        
+        document.getElementById('menu-adapters').addEventListener('click', () => {
+            showToast('Adapters feature coming soon', 'info');
+            closeSidePanel();
+        });
+        
+        document.getElementById('menu-documents').addEventListener('click', () => {
+            showToast('Documents feature coming soon', 'info');
+            closeSidePanel();
+        });
+        
+        // Side panel menu items - Tools
+        document.getElementById('menu-testing').addEventListener('click', () => {
+            showToast('Testing feature coming soon', 'info');
+            closeSidePanel();
+        });
+        
+        document.getElementById('menu-logs').addEventListener('click', () => {
+            showToast('Server Logs feature coming soon', 'info');
+            closeSidePanel();
+        });
+        
+        document.getElementById('menu-monitoring').addEventListener('click', () => {
+            showToast('Monitoring feature coming soon', 'info');
+            closeSidePanel();
+        });
+        
+        // Side panel menu items - Display
+        document.getElementById('menu-fullscreen').addEventListener('click', () => {
+            toggleFullscreen();
+            closeSidePanel();
+        });
+        
+        // Side panel menu items - Connection
+        document.getElementById('menu-reconnect').addEventListener('click', () => {
+            if (rfb) {
+                disconnect();
+                setTimeout(() => {
+                    const password = passwordInput.value || '1234';
+                    connect(password);
+                }, 500);
+            }
+            closeSidePanel();
+        });
+        
+        document.getElementById('menu-disconnect').addEventListener('click', () => {
+            disconnect();
+            closeSidePanel();
+        });
+        
+        // Focus password input on load
+        passwordInput.focus();
+        
+        Log.Info('webMethods Designer Desktop initialized');
+    </script>
+</body>
+</html>

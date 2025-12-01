@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Service Designer
+GenericName=webMethods Service Designer
+Comment=
+Exec=/opt/softwareag/wMServiceDesigner/ServiceDesigner
+Type=Application
+Categories=Application;
+Icon=application-x-desktop
+Terminal=false

@@ -1,3 +1,12 @@
+FROM ubuntu:24.04 AS SERVICE_DESIGNER
+
+RUN mkdir -p /opt/softwareag;
+
+COPY wMServiceDesigner.tar.gz /opt/softwareag
+
+RUN set -eux; \
+    tar -C /opt/softwareag -xf /opt/softwareag/wMServiceDesigner.tar.gz; 
+
 FROM ubuntu:24.04
 
 # built-in packages
@@ -10,7 +19,7 @@ RUN apt-get update && apt-get install -y \
     xvfb x11vnc \
     lxqt openbox \
     git wget curl python3 python3-pip \
-    tini \
+    tini openssl \
  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Set up noVNC and websockify
@@ -36,29 +45,46 @@ RUN apt-get install curl gpg apt-transport-https --yes && \
     apt-get update && \
     apt-get install helm
 
+# Create non-root user
+RUN useradd --uid 1724 --create-home --shell /bin/bash --user-group --groups adm,sudo sagadmin && \
+    echo "sagadmin:sagadmin" | chpasswd
+
 # VNC password (change as needed)
-RUN mkdir -p /root/.vnc && x11vnc -storepasswd 1234 /root/.vnc/passwd
+RUN mkdir -p /home/sagadmin/.vnc && \
+    x11vnc -storepasswd 1234 /home/sagadmin/.vnc/passwd && \
+    chown -R sagadmin:0 /home/sagadmin/.vnc && \
+    chmod -R g=u /home/sagadmin/.vnc
 
-# add postgres db
-RUN apt-get update && apt-get install -y postgresql postgresql-contrib vim && \
-    sudo -u postgres createuser --superuser root && \
-    sudo -u postgres createdb root
+RUN mkdir -p /opt/softwareag && \
+    chown sagadmin:0 /opt/softwareag && \
+    chmod g=u /opt/softwareag
 
-RUN mkdir -p /opt/softwareag && chown root:root /opt/softwareag
-
-COPY --from=INSTALL /opt/softwareag/ /opt/softwareag/
+COPY --from=SERVICE_DESIGNER --chown=sagadmin:0 /opt/softwareag/wMServiceDesigner/ /opt/softwareag/wMServiceDesigner
 
 # Add custom scripts and supervisor config
 COPY ./startup.sh       /
-COPY ./supervisord.conf /etc/supervisor/conf.d/
+COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./xvfb.sh          /usr/local/bin/
-RUN chmod +x /usr/local/bin/xvfb.sh
+COPY ./custom-novnc.css /opt/novnc/app/styles/custom.css
+COPY ./webmethods-vnc.html /opt/novnc/vnc.html
+COPY designer.desktop  /home/sagadmin/Desktop/designer.desktop
 
+RUN chmod +x /usr/local/bin/xvfb.sh /startup.sh && \
+    chmod 644 /etc/supervisor/conf.d/supervisord.conf && \
+    chmod 644 /opt/novnc/app/styles/custom.css && \
+    chmod 644 /opt/novnc/vnc.html && \
+    mkdir -p /home/sagadmin/.config/supervisor /home/sagadmin/.local/bin && \
+    chown -R sagadmin:0 /home/sagadmin && \
+    chmod -R g=u /home/sagadmin
 
-WORKDIR /root
+WORKDIR /home/sagadmin
 ENV SHELL=/bin/bash
 ENV DISPLAY=:1
+ENV USER=sagadmin
+ENV HOME=/home/sagadmin
 
 EXPOSE 6080
+
+USER sagadmin
 
 ENTRYPOINT ["/startup.sh"]

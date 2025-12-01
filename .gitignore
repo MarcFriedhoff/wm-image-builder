@@ -2,3 +2,5 @@ Dockerfile.tmp
 installer.script.tmp
 installer.bin
 *.bin
+templates/designer/wMServiceDesigner.tar.gz
+templates/designer/carbon-template.html

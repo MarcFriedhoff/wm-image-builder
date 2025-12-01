@@ -1,0 +1,800 @@
+/* ============================================================================
+   webMethods Desktop - Pure Carbon Design System Theme for noVNC
+   
+   This stylesheet completely replaces noVNC's default styling with IBM's
+   Carbon Design System, providing a consistent, professional interface.
+   ============================================================================ */
+
+/* Carbon Design System Color Tokens */
+:root {
+    /* Background colors */
+    --carbon-ui-background: #161616;
+    --carbon-ui-01: #262626;
+    --carbon-ui-02: #393939;
+    --carbon-ui-03: #525252;
+    --carbon-ui-04: #8d8d8d;
+    --carbon-ui-05: #f4f4f4;
+    
+    /* Text colors */
+    --carbon-text-01: #f4f4f4;
+    --carbon-text-02: #c6c6c6;
+    --carbon-text-03: #8d8d8d;
+    --carbon-text-04: #6f6f6f;
+    --carbon-text-05: #525252;
+    
+    /* Link colors */
+    --carbon-link-01: #78a9ff;
+    --carbon-link-02: #a6c8ff;
+    
+    /* Interactive colors */
+    --carbon-interactive-01: #0f62fe;
+    --carbon-interactive-02: #393939;
+    --carbon-interactive-03: #0f62fe;
+    --carbon-interactive-04: #0f62fe;
+    
+    /* State colors */
+    --carbon-hover-primary: #0353e9;
+    --carbon-active-primary: #002d9c;
+    --carbon-hover-ui: #4c4c4c;
+    --carbon-active-ui: #6f6f6f;
+    --carbon-hover-secondary: #606060;
+    --carbon-active-secondary: #393939;
+    
+    /* Focus */
+    --carbon-focus: #0f62fe;
+    
+    /* Status colors */
+    --carbon-danger: #da1e28;
+    --carbon-danger-hover: #ba1b23;
+    --carbon-success: #24a148;
+    --carbon-warning: #f1c21b;
+    --carbon-info: #4589ff;
+    
+    /* Spacing scale (Carbon uses 8px base) */
+    --carbon-spacing-01: 2px;
+    --carbon-spacing-02: 4px;
+    --carbon-spacing-03: 8px;
+    --carbon-spacing-04: 12px;
+    --carbon-spacing-05: 16px;
+    --carbon-spacing-06: 24px;
+    --carbon-spacing-07: 32px;
+    --carbon-spacing-08: 40px;
+    
+    /* Typography */
+    --carbon-font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --carbon-font-family-mono: 'IBM Plex Mono', 'Menlo', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', Courier, monospace;
+    
+    /* Motion */
+    --carbon-transition: all 0.11s cubic-bezier(0.2, 0, 0.38, 0.9);
+}
+
+/* ============================================================================
+   Global Resets and Base Styles
+   ============================================================================ */
+
+* {
+    font-family: var(--carbon-font-family) !important;
+}
+
+body {
+    background-color: var(--carbon-ui-background) !important;
+    color: var(--carbon-text-01) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* ============================================================================
+   Control Bar - Top navigation bar
+   ============================================================================ */
+
+#noVNC_control_bar {
+    background: var(--carbon-ui-01) !important;
+    border-bottom: 1px solid var(--carbon-ui-03) !important;
+    padding: 0 var(--carbon-spacing-05) !important;
+    height: 48px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+#noVNC_control_bar_anchor {
+    background: var(--carbon-ui-02) !important;
+}
+
+#noVNC_control_bar_handle {
+    background: var(--carbon-ui-03) !important;
+    transition: var(--carbon-transition) !important;
+}
+
+#noVNC_control_bar_handle:hover {
+    background: var(--carbon-ui-04) !important;
+}
+
+/* ============================================================================
+   Logo and Branding
+   ============================================================================ */
+
+#noVNC_logo {
+    background: none !important;
+    color: var(--carbon-text-01) !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+    text-indent: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    padding: var(--carbon-spacing-03) var(--carbon-spacing-05) !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+#noVNC_logo svg,
+#noVNC_logo img {
+    display: none !important;
+}
+
+#noVNC_logo::after {
+    content: "webMethods Desktop" !important;
+    display: inline-block !important;
+}
+
+#noVNC_logo_wrapper {
+    background: var(--carbon-ui-01) !important;
+}
+
+/* ============================================================================
+   Buttons - Carbon button styles
+   ============================================================================ */
+
+.noVNC_button,
+button,
+input[type="button"],
+input[type="submit"] {
+    background: var(--carbon-interactive-02) !important;
+    color: var(--carbon-text-01) !important;
+    border: 1px solid var(--carbon-ui-03) !important;
+    border-radius: 0 !important;
+    padding: var(--carbon-spacing-04) var(--carbon-spacing-05) !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    cursor: pointer !important;
+    transition: var(--carbon-transition) !important;
+    min-height: 48px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.noVNC_button:hover,
+button:hover,
+input[type="button"]:hover {
+    background: var(--carbon-hover-ui) !important;
+}
+
+.noVNC_button:active,
+button:active,
+input[type="button"]:active {
+    background: var(--carbon-active-ui) !important;
+}
+
+.noVNC_button:focus,
+button:focus,
+input[type="button"]:focus,
+input[type="submit"]:focus {
+    outline: 2px solid var(--carbon-focus) !important;
+    outline-offset: -2px !important;
+}
+
+.noVNC_button.noVNC_selected {
+    background: var(--carbon-interactive-01) !important;
+    border-color: var(--carbon-interactive-01) !important;
+    color: var(--carbon-text-01) !important;
+}
+
+/* Primary buttons */
+#noVNC_connect_button,
+input[type="submit"],
+.noVNC_button.primary {
+    background: var(--carbon-interactive-01) !important;
+    color: var(--carbon-text-01) !important;
+    border: none !important;
+    font-weight: 600 !important;
+}
+
+#noVNC_connect_button:hover,
+input[type="submit"]:hover {
+    background: var(--carbon-hover-primary) !important;
+}
+
+#noVNC_connect_button:active,
+input[type="submit"]:active {
+    background: var(--carbon-active-primary) !important;
+}
+
+/* Danger buttons */
+#noVNC_disconnect_button,
+#noVNC_reject_server_button {
+    background: var(--carbon-danger) !important;
+    border: none !important;
+    color: var(--carbon-text-01) !important;
+}
+
+#noVNC_disconnect_button:hover,
+#noVNC_reject_server_button:hover {
+    background: var(--carbon-danger-hover) !important;
+}
+
+/* Secondary buttons */
+#noVNC_cancel_reconnect_button,
+.button_row input[type="button"] {
+    background: var(--carbon-interactive-02) !important;
+    color: var(--carbon-text-01) !important;
+    border: 1px solid var(--carbon-ui-03) !important;
+}
+
+#noVNC_cancel_reconnect_button:hover,
+.button_row input[type="button"]:hover {
+    background: var(--carbon-hover-ui) !important;
+}
+
+/* Keyboard buttons */
+.noVNC_kbd_button {
+    background: var(--carbon-ui-02) !important;
+    color: var(--carbon-text-01) !important;
+    border: 1px solid var(--carbon-ui-03) !important;
+    min-height: 40px !important;
+    padding: var(--carbon-spacing-03) var(--carbon-spacing-04) !important;
+}
+
+.noVNC_kbd_button:hover {
+    background: var(--carbon-ui-03) !important;
+}
+
+.noVNC_kbd_button:active {
+    background: var(--carbon-interactive-01) !important;
+}
+
+/* ============================================================================
+   Panels and Dialogs
+   ============================================================================ */
+
+.noVNC_panel,
+#noVNC_settings,
+#noVNC_clipboard,
+#noVNC_power,
+#noVNC_modifiers {
+    background: var(--carbon-ui-01) !important;
+    border: 1px solid var(--carbon-ui-03) !important;
+    color: var(--carbon-text-01) !important;
+    border-radius: 0 !important;
+    padding: var(--carbon-spacing-05) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+.noVNC_panel_title,
+.noVNC_heading {
+    background: var(--carbon-ui-02) !important;
+    color: var(--carbon-text-01) !important;
+    border-bottom: 1px solid var(--carbon-ui-03) !important;
+    padding: var(--carbon-spacing-04) var(--carbon-spacing-05) !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    margin: calc(-1 * var(--carbon-spacing-05)) calc(-1 * var(--carbon-spacing-05)) var(--carbon-spacing-05) !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.noVNC_heading img {
+    filter: brightness(0) invert(1) !important;
+}
+
+/* Connection dialogs */
+.noVNC_connect_dlg,
+#noVNC_credentials_dlg {
+    background: var(--carbon-ui-01) !important;
+    border: 1px solid var(--carbon-ui-03) !important;
+    border-radius: 0 !important;
+    padding: var(--carbon-spacing-07) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5) !important;
+    max-width: 480px !important;
+}
+
+.noVNC_connect_dlg .noVNC_logo {
+    color: var(--carbon-text-01) !important;
+    font-size: 32px !important;
+    font-weight: 600 !important;
+    margin-bottom: var(--carbon-spacing-06) !important;
+}
+
+/* ============================================================================
+   Form Elements
+   ============================================================================ */
+
+/* Text inputs */
+input[type="text"],
+input[type="password"],
+input[type="number"],
+select,
+textarea,
+#noVNC_clipboard_text {
+    background: var(--carbon-ui-02) !important;
+    color: var(--carbon-text-01) !important;
+    border: none !important;
+    border-bottom: 1px solid var(--carbon-ui-04) !important;
+    padding: var(--carbon-spacing-04) var(--carbon-spacing-04) !important;
+    font-size: 14px !important;
+    transition: var(--carbon-transition) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus,
+#noVNC_clipboard_text:focus {
+    outline: 2px solid var(--carbon-focus) !important;
+    outline-offset: -2px !important;
+    border-bottom-color: var(--carbon-focus) !important;
+}
+
+input[type="text"]:disabled,
+input[type="password"]:disabled,
+input[type="number"]:disabled,
+select:disabled {
+    background: var(--carbon-ui-01) !important;
+    color: var(--carbon-text-05) !important;
+    cursor: not-allowed !important;
+}
+
+/* Labels */
+label {
+    color: var(--carbon-text-02) !important;
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.32px !important;
+    margin-bottom: var(--carbon-spacing-02) !important;
+    display: block !important;
+}
+
+/* Checkboxes */
+input[type="checkbox"] {
+    width: 18px !important;
+    height: 18px !important;
+    border: 1px solid var(--carbon-ui-04) !important;
+    background: var(--carbon-ui-02) !important;
+    cursor: pointer !important;
+}
+
+input[type="checkbox"]:checked {
+    background: var(--carbon-interactive-01) !important;
+    border-color: var(--carbon-interactive-01) !important;
+}
+
+input[type="checkbox"]:focus {
+    outline: 2px solid var(--carbon-focus) !important;
+    outline-offset: 2px !important;
+}
+
+/* Range sliders */
+input[type="range"] {
+    width: 100% !important;
+    height: 4px !important;
+    background: var(--carbon-ui-03) !important;
+    border-radius: 2px !important;
+    outline: none !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    width: 16px !important;
+    height: 16px !important;
+    background: var(--carbon-interactive-01) !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    border: 2px solid var(--carbon-ui-background) !important;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 16px !important;
+    height: 16px !important;
+    background: var(--carbon-interactive-01) !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    border: 2px solid var(--carbon-ui-background) !important;
+}
+
+input[type="range"]:focus::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px rgba(15, 98, 254, 0.3) !important;
+}
+
+input[type="range"]:focus::-moz-range-thumb {
+    box-shadow: 0 0 0 3px rgba(15, 98, 254, 0.3) !important;
+}
+
+/* Toggle switches */
+.toggle,
+input[type="checkbox"].toggle {
+    position: relative !important;
+    width: 48px !important;
+    height: 24px !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background: var(--carbon-ui-03) !important;
+    outline: none !important;
+    border-radius: 24px !important;
+    cursor: pointer !important;
+    transition: var(--carbon-transition) !important;
+    border: none !important;
+}
+
+.toggle:checked,
+input[type="checkbox"].toggle:checked {
+    background: var(--carbon-interactive-01) !important;
+}
+
+.toggle::before,
+input[type="checkbox"].toggle::before {
+    content: "" !important;
+    position: absolute !important;
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50% !important;
+    top: 2px !important;
+    left: 2px !important;
+    background: var(--carbon-ui-05) !important;
+    transition: var(--carbon-transition) !important;
+}
+
+.toggle:checked::before,
+input[type="checkbox"].toggle:checked::before {
+    left: 26px !important;
+}
+
+.toggle:focus,
+input[type="checkbox"].toggle:focus {
+    box-shadow: 0 0 0 3px rgba(15, 98, 254, 0.3) !important;
+}
+
+/* ============================================================================
+   Status Bar
+   ============================================================================ */
+
+#noVNC_status_bar {
+    background: var(--carbon-ui-02) !important;
+    color: var(--carbon-text-01) !important;
+    border-top: 1px solid var(--carbon-ui-03) !important;
+    padding: var(--carbon-spacing-03) var(--carbon-spacing-05) !important;
+    font-size: 13px !important;
+}
+
+#noVNC_status {
+    color: var(--carbon-text-01) !important;
+}
+
+.noVNC_status_normal {
+    background: var(--carbon-success) !important;
+    color: var(--carbon-ui-background) !important;
+    padding: var(--carbon-spacing-02) var(--carbon-spacing-03) !important;
+    border-radius: 2px !important;
+}
+
+.noVNC_status_error {
+    background: var(--carbon-danger) !important;
+    color: var(--carbon-text-01) !important;
+    padding: var(--carbon-spacing-02) var(--carbon-spacing-03) !important;
+    border-radius: 2px !important;
+}
+
+.noVNC_status_warn {
+    background: var(--carbon-warning) !important;
+    color: var(--carbon-ui-background) !important;
+    padding: var(--carbon-spacing-02) var(--carbon-spacing-03) !important;
+    border-radius: 2px !important;
+}
+
+/* ============================================================================
+   Settings and Expandable Sections
+   ============================================================================ */
+
+.noVNC_expander {
+    color: var(--carbon-text-01) !important;
+    cursor: pointer !important;
+    padding: var(--carbon-spacing-03) 0 !important;
+    font-weight: 600 !important;
+    transition: var(--carbon-transition) !important;
+    user-select: none !important;
+}
+
+.noVNC_expander:hover {
+    color: var(--carbon-link-01) !important;
+}
+
+.noVNC_expander::before {
+    content: "▶" !important;
+    display: inline-block !important;
+    margin-right: var(--carbon-spacing-03) !important;
+    transition: var(--carbon-transition) !important;
+    font-size: 10px !important;
+}
+
+.noVNC_open .noVNC_expander::before {
+    transform: rotate(90deg) !important;
+}
+
+.noVNC_setting {
+    padding: var(--carbon-spacing-04) 0 !important;
+    border-bottom: 1px solid var(--carbon-ui-03) !important;
+}
+
+.noVNC_setting:last-child {
+    border-bottom: none !important;
+}
+
+.noVNC_subheading {
+    color: var(--carbon-text-02) !important;
+    font-size: 13px !important;
+    margin: var(--carbon-spacing-04) 0 !important;
+}
+
+/* Settings panel specific */
+#noVNC_settings {
+    max-height: 80vh !important;
+    overflow-y: auto !important;
+}
+
+#noVNC_settings ul {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+#noVNC_settings li {
+    padding: var(--carbon-spacing-03) 0 !important;
+}
+
+/* ============================================================================
+   Connection Screens and Overlays
+   ============================================================================ */
+
+.noVNC_center,
+#noVNC_center {
+    background: var(--carbon-ui-background) !important;
+}
+
+.noVNC_vcenter {
+    background: transparent !important;
+}
+
+.noVNC_connect_layer {
+    background: rgba(22, 22, 22, 0.95) !important;
+}
+
+#noVNC_transition {
+    background: rgba(22, 22, 22, 0.9) !important;
+}
+
+#noVNC_transition_text {
+    color: var(--carbon-text-01) !important;
+    font-size: 16px !important;
+    font-weight: 400 !important;
+}
+
+/* ============================================================================
+   Scrollbars
+   ============================================================================ */
+
+.noVNC_scroll,
+*::-webkit-scrollbar {
+    width: 8px !important;
+    height: 8px !important;
+}
+
+.noVNC_scroll::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
+    background: var(--carbon-ui-01) !important;
+}
+
+.noVNC_scroll::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
+    background: var(--carbon-ui-04) !important;
+    border-radius: 4px !important;
+}
+
+.noVNC_scroll::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover {
+    background: var(--carbon-ui-05) !important;
+}
+
+/* ============================================================================
+   Links
+   ============================================================================ */
+
+a {
+    color: var(--carbon-link-01) !important;
+    text-decoration: none !important;
+    transition: var(--carbon-transition) !important;
+}
+
+a:hover {
+    color: var(--carbon-link-02) !important;
+    text-decoration: underline !important;
+}
+
+a:focus {
+    outline: 2px solid var(--carbon-focus) !important;
+    outline-offset: 2px !important;
+}
+
+/* ============================================================================
+   Miscellaneous Elements
+   ============================================================================ */
+
+/* Version info */
+.noVNC_version_wrapper {
+    display: flex !important;
+    justify-content: space-between !important;
+    padding: var(--carbon-spacing-04) 0 !important;
+    color: var(--carbon-text-03) !important;
+    font-size: 12px !important;
+}
+
+.noVNC_version,
+#noVNC_version {
+    color: var(--carbon-text-04) !important;
+    font-size: 11px !important;
+}
+
+.noVNC_version_separator {
+    margin-top: var(--carbon-spacing-05) !important;
+    border-top: 1px solid var(--carbon-ui-03) !important;
+}
+
+/* Description text */
+.noVNC_description {
+    color: var(--carbon-text-02) !important;
+    font-size: 13px !important;
+}
+
+/* Separator */
+.noVNC_separator {
+    border-top: 1px solid var(--carbon-ui-03) !important;
+    margin: var(--carbon-spacing-05) 0 !important;
+}
+
+/* Hidden elements */
+.noVNC_hidden {
+    display: none !important;
+}
+
+/* Fingerprint display */
+#noVNC_fingerprint_block {
+    background: var(--carbon-ui-02) !important;
+    padding: var(--carbon-spacing-04) !important;
+    border-radius: 0 !important;
+    margin: var(--carbon-spacing-04) 0 !important;
+    font-family: var(--carbon-font-family-mono) !important;
+    font-size: 13px !important;
+    color: var(--carbon-text-02) !important;
+    border-left: 4px solid var(--carbon-info) !important;
+}
+
+#noVNC_fingerprint {
+    color: var(--carbon-info) !important;
+    font-weight: 600 !important;
+}
+
+/* Form blocks */
+#noVNC_username_block,
+#noVNC_password_block {
+    margin-bottom: var(--carbon-spacing-05) !important;
+}
+
+form {
+    width: 100% !important;
+}
+
+form div {
+    margin-bottom: var(--carbon-spacing-05) !important;
+}
+
+form div:last-child {
+    margin-bottom: 0 !important;
+}
+
+/* Button rows */
+.button_row {
+    display: flex !important;
+    gap: var(--carbon-spacing-04) !important;
+    margin-top: var(--carbon-spacing-06) !important;
+}
+
+.button_row input[type="submit"],
+.button_row input[type="button"] {
+    flex: 1 !important;
+}
+
+/* Hints and tooltips */
+#noVNC_hint_anchor {
+    background: transparent !important;
+}
+
+#noVNC_control_bar_hint {
+    background: var(--carbon-ui-01) !important;
+    color: var(--carbon-text-01) !important;
+    padding: var(--carbon-spacing-03) var(--carbon-spacing-05) !important;
+    border-radius: 0 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+    font-size: 13px !important;
+    border: 1px solid var(--carbon-ui-03) !important;
+}
+
+/* Container */
+#noVNC_container {
+    background: var(--carbon-ui-background) !important;
+}
+
+/* Keyboard input (hidden) */
+#noVNC_keyboardinput {
+    background: transparent !important;
+    color: transparent !important;
+}
+
+/* Mobile buttons */
+#noVNC_mobile_buttons {
+    background: transparent !important;
+}
+
+/* Power panel buttons */
+#noVNC_power input[type="button"] {
+    width: 100% !important;
+    margin-bottom: var(--carbon-spacing-03) !important;
+}
+
+#noVNC_power input[type="button"]:last-child {
+    margin-bottom: 0 !important;
+}
+
+/* Loading spinner */
+.noVNC_spinner {
+    border: 3px solid var(--carbon-ui-03) !important;
+    border-top-color: var(--carbon-interactive-01) !important;
+    border-radius: 50% !important;
+}
+
+/* ============================================================================
+   Responsive Adjustments
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .noVNC_connect_dlg,
+    #noVNC_credentials_dlg {
+        padding: var(--carbon-spacing-05) !important;
+        max-width: 90vw !important;
+    }
+    
+    .button_row {
+        flex-direction: column !important;
+    }
+    
+    .button_row input[type="submit"],
+    .button_row input[type="button"] {
+        width: 100% !important;
+    }
+}
+
+/* ============================================================================
+   Print Styles
+   ============================================================================ */
+
+@media print {
+    #noVNC_control_bar,
+    #noVNC_status_bar {
+        display: none !important;
+    }
+}
+
+/* Made with Bob */
