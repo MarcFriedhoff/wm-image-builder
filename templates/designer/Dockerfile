@@ -45,6 +45,9 @@ RUN apt-get install curl gpg apt-transport-https --yes && \
     apt-get update && \
     apt-get install helm
 
+# Uninstall Screensaver
+RUN dpkg -l | grep screensaver | awk '{ print $2 }' | xargs dpkg --remove
+
 # Create non-root user
 RUN useradd --uid 1724 --create-home --shell /bin/bash --user-group --groups adm,sudo sagadmin && \
     echo "sagadmin:sagadmin" | chpasswd
