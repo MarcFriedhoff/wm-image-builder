@@ -96,6 +96,9 @@ RUN mkdir -p /opt/softwareag && \
 
 COPY --from=SERVICE_DESIGNER --chown=sagadmin:0 /opt/softwareag/wMServiceDesigner/ /opt/softwareag/wMServiceDesigner
 
+# Uninstall Screensaver
+RUN dpkg -l | grep screensaver | awk '{ print $2 }' | xargs dpkg --remove
+
 # Add custom scripts and supervisor config
 COPY ./startup.sh       /
 COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
