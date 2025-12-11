@@ -1,11 +1,12 @@
 FROM ubuntu:24.04 AS SERVICE_DESIGNER
 
-RUN mkdir -p /opt/softwareag;
+RUN mkdir -p /opt/softwareag
 
 COPY wMServiceDesigner.tar.gz /opt/softwareag
 
 RUN set -eux; \
-    tar -C /opt/softwareag -xf /opt/softwareag/wMServiceDesigner.tar.gz; 
+    tar -C /opt/softwareag -xf /opt/softwareag/wMServiceDesigner.tar.gz
+
 
 FROM ubuntu:24.04
 
@@ -27,25 +28,36 @@ RUN git clone https://github.com/novnc/noVNC.git /opt/novnc && \
     git clone https://github.com/novnc/websockify /opt/novnc/utils/websockify && \
     ln -s /opt/novnc/vnc.html /opt/novnc/index.html
 
-# Install Firefox Browser firefox-esr  firefox-geckodriver
-RUN apt-get remove -y firefox && \
-    apt-get update && apt-get install -y software-properties-common && \
-    apt-add-repository ppa:mozillateam/ppa && apt update && \
-    apt-get install -y firefox-esr
+# Install Firefox Browser (ESR) without apt-add-repository
+# Uses Mozilla's official APT repository (no Launchpad/IPv6 issues)
+RUN set -eux; \
+    apt-get remove -y firefox || true; \
+    apt-get update; \
+    install -d -m 0755 /etc/apt/keyrings; \
+    wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- \
+      | tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null; \
+    echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" \
+      > /etc/apt/sources.list.d/mozilla.list; \
+    printf 'Package: *\nPin: origin packages.mozilla.org\nPin-Priority: 1000\n' \
+      > /etc/apt/preferences.d/mozilla; \
+    apt-get update; \
+    apt-get install -y firefox-esr; \
+    rm -rf /var/lib/apt/lists/*
 
 # Install Kubectl
-RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && \
+RUN curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl" && \
     chmod +x ./kubectl && \
     mv ./kubectl /usr/local/bin/kubectl
 
 # Install Helm
-RUN apt-get install curl gpg apt-transport-https --yes && \
-    curl -fsSL https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null && \
-    echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list && \
+RUN apt-get update && apt-get install -y curl gpg apt-transport-https && \
+    curl -fsSL https://packages.buildkite.com/helm-linux/helm-debian/gpgkey \
+      | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null && \
+    echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" \
+      > /etc/apt/sources.list.d/helm-stable-debian.list && \
     apt-get update && \
-    apt-get install helm
-
-# Uninstall Screensaver
+    apt-get install -y helm && \
+    rm -rf /var/lib/apt/lists/*
 RUN dpkg -l | grep screensaver | awk '{ print $2 }' | xargs dpkg --remove
 
 # Create non-root user
