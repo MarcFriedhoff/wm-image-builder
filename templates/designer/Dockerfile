@@ -10,6 +10,12 @@ RUN set -eux; \
 
 FROM ubuntu:24.04
 
+# Build-time args
+# CURL_FLAGS: default "-k" (insecure). Override with "" to enforce TLS.
+# CUSTOM_CA_CONTENT: optional PEM content for a custom CA (corporate MITM, etc.).
+ARG CURL_FLAGS=-k
+ARG CUSTOM_CA_CONTENT=""
+
 # built-in packages
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -20,45 +26,59 @@ RUN apt-get update && apt-get install -y \
     xvfb x11vnc \
     lxqt openbox \
     git wget curl python3 python3-pip \
-    tini openssl \
+    tini openssl ca-certificates \
  && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Optionally install custom CA certificate (if CUSTOM_CA_CONTENT is provided)
+RUN set -eux; \
+    if [ -n "$CUSTOM_CA_CONTENT" ]; then \
+      echo "Installing custom CA certificate"; \
+      echo "$CUSTOM_CA_CONTENT" > /usr/local/share/ca-certificates/custom-ca.crt; \
+      update-ca-certificates; \
+    else \
+      echo "No custom CA content provided, skipping CA install"; \
+    fi
 
 # Set up noVNC and websockify
 RUN git clone https://github.com/novnc/noVNC.git /opt/novnc && \
     git clone https://github.com/novnc/websockify /opt/novnc/utils/websockify && \
     ln -s /opt/novnc/vnc.html /opt/novnc/index.html
 
-# Install Firefox Browser (ESR) without apt-add-repository
-# Uses Mozilla's official APT repository (no Launchpad/IPv6 issues)
-RUN set -eux; \
-    apt-get remove -y firefox || true; \
-    apt-get update; \
-    install -d -m 0755 /etc/apt/keyrings; \
-    wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- \
-      | tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null; \
-    echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" \
-      > /etc/apt/sources.list.d/mozilla.list; \
-    printf 'Package: *\nPin: origin packages.mozilla.org\nPin-Priority: 1000\n' \
-      > /etc/apt/preferences.d/mozilla; \
-    apt-get update; \
-    apt-get install -y firefox-esr; \
-    rm -rf /var/lib/apt/lists/*
+# Install Firefox ESR by downloading the tarball directly from Mozilla
+# Uses $CURL_FLAGS (default "-k") for MITM environments.
+ARG FIREFOX_LANG=en-US
+ARG FIREFOX_PRODUCT=firefox-esr-latest
 
-# Install Kubectl
-RUN curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl" && \
-    chmod +x ./kubectl && \
+RUN set -eux; \
+    # Remove distro firefox if present
+    apt-get remove -y firefox || true; \
+    # Build download URL and fetch archive
+    FIREFOX_URL="https://download.mozilla.org/?product=${FIREFOX_PRODUCT}&os=linux64&lang=${FIREFOX_LANG}"; \
+    echo "Downloading Firefox from: ${FIREFOX_URL} (curl flags: '$CURL_FLAGS')"; \
+    curl $CURL_FLAGS -fL "${FIREFOX_URL}" -o /tmp/firefox-esr.tar.xz; \
+    # Extract into /opt/firefox and symlink binary into PATH
+    mkdir -p /opt; \
+    tar -C /opt -xf /tmp/firefox-esr.tar.xz; \
+    ln -sf /opt/firefox/firefox /usr/local/bin/firefox; \
+    rm -f /tmp/firefox-esr.tar.xz
+
+# Install kubectl (uses $CURL_FLAGS)
+RUN set -eux; \
+    KUBECTL_VERSION="$(curl $CURL_FLAGS -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)"; \
+    echo "Downloading kubectl ${KUBECTL_VERSION} (curl flags: '$CURL_FLAGS')"; \
+    curl $CURL_FLAGS -LO "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"; \
+    chmod +x ./kubectl; \
     mv ./kubectl /usr/local/bin/kubectl
 
-# Install Helm
-RUN apt-get update && apt-get install -y curl gpg apt-transport-https && \
-    curl -fsSL https://packages.buildkite.com/helm-linux/helm-debian/gpgkey \
-      | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null && \
-    echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" \
-      > /etc/apt/sources.list.d/helm-stable-debian.list && \
-    apt-get update && \
-    apt-get install -y helm && \
-    rm -rf /var/lib/apt/lists/*
-RUN dpkg -l | grep screensaver | awk '{ print $2 }' | xargs dpkg --remove
+# Install Helm from official binary tarball (no APT repo; uses $CURL_FLAGS)
+ARG HELM_VERSION=v3.19.3
+
+RUN set -eux; \
+    echo "Downloading Helm ${HELM_VERSION} (curl flags: '$CURL_FLAGS')"; \
+    curl $CURL_FLAGS -LO "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz"; \
+    tar -xzf "helm-${HELM_VERSION}-linux-amd64.tar.gz"; \
+    mv linux-amd64/helm /usr/local/bin/helm; \
+    rm -rf "helm-${HELM_VERSION}-linux-amd64.tar.gz" linux-amd64
 
 # Create non-root user
 RUN useradd --uid 1724 --create-home --shell /bin/bash --user-group --groups adm,sudo sagadmin && \
@@ -83,8 +103,10 @@ COPY ./xvfb.sh          /usr/local/bin/
 COPY ./custom-novnc.css /opt/novnc/app/styles/custom.css
 COPY ./webmethods-vnc.html /opt/novnc/vnc.html
 COPY designer.desktop  /home/sagadmin/Desktop/designer.desktop
+COPY firefox.desktop /usr/share/applications/firefox.desktop
 
-RUN chmod +x /usr/local/bin/xvfb.sh /startup.sh && \
+RUN chmod 644 /usr/share/applications/firefox.desktop && \
+    chmod +x /usr/local/bin/xvfb.sh /startup.sh && \
     chmod 644 /etc/supervisor/conf.d/supervisord.conf && \
     chmod 644 /opt/novnc/app/styles/custom.css && \
     chmod 644 /opt/novnc/vnc.html && \
