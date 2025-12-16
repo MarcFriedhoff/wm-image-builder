@@ -91,10 +91,11 @@ RUN mkdir -p /home/sagadmin/.vnc && \
     chmod -R g=u /home/sagadmin/.vnc
 
 RUN mkdir -p /opt/softwareag && \
-    chown sagadmin:0 /opt/softwareag && \
-    chmod g=u /opt/softwareag
+    chown sagadmin:0 /opt/softwareag
 
 COPY --from=SERVICE_DESIGNER --chown=sagadmin:0 /opt/softwareag/wMServiceDesigner/ /opt/softwareag/wMServiceDesigner
+
+RUN chmod -R g=u /opt/softwareag
 
 # Uninstall Screensaver
 RUN dpkg -l | grep screensaver | awk '{ print $2 }' | xargs dpkg --remove
@@ -105,7 +106,7 @@ COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./xvfb.sh          /usr/local/bin/
 COPY ./custom-novnc.css /opt/novnc/app/styles/custom.css
 COPY ./webmethods-vnc.html /opt/novnc/vnc.html
-COPY designer.desktop  /home/sagadmin/Desktop/designer.desktop
+COPY designer.desktop  /usr/share/applications/designer.desktop
 COPY firefox.desktop /usr/share/applications/firefox.desktop
 
 RUN chmod 644 /usr/share/applications/firefox.desktop && \

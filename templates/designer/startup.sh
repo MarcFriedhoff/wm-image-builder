@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+mkdir -p ${HOME}/.vnc
+chmod 700 ${HOME}/.vnc
+
 # Use writable temp directory for password files and configs
 TEMP_DIR="${HOME}/.vnc"
 CONFIG_DIR="${HOME}/.config/supervisor"
